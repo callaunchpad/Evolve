@@ -1,5 +1,6 @@
 # USAGE
-# python classify.py --model apple_not_apple.model
+# python3 some_shit_that_splits.py -i "input.jpg" -n 100 -m 100
+
 
 # import the necessary packages
 #from keras.preprocessing.image import img_to_array
@@ -25,7 +26,6 @@ def split():
 	height = img.shape[0]
 	width = img.shape[1]
 
-
 	#number of rows
 	nRows = height//int(args["rows"])
 	# Number of columns
@@ -42,4 +42,7 @@ def split():
 	print("done.")
 
 if __name__ == "__main__":
+	if not os.path.exists('patches'):
+		os.makedirs('patches')
+
 	split()
