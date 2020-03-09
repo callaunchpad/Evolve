@@ -59,13 +59,26 @@ class GA():
     
     # function that returns a fitnesss value for an individual based on a set of images
     def fitness(self, ind, batch_size = 16):
-        reconstruct = None
         used_indeces = np.random.choice(self.pop_size, batch_size)
-        fitness_vals_per_im = []
+        fitness_val_per_im = []
 
+        def closest(bl):
+            close = self.mse(bl, self.train_blocks[i][0])
+            close_block = self.train_blocks[i][0]
+            for i in used_indeces:
+                for block in self.train_blocks[i]:
+                    error = self.mse(bl, block)
+                    if error < close:
+                        close = error
+                        close_block = block
+        
         for i in used_indeces:
-            reconstructed = reconstruct(self.train_blocks[i])
-            fitness_vals_per_im.append(self.ssim(reconstructed, self.train_im[i]))
+            centroid_errors = 0
+            for centroid in ind.centroids:
+                centroid_errors = centroid_errors + closest(centroid)
+            fitness_vals_per_im.append(centroid_errors)
+
+        return sum(fitness_val_per_im) / len(fitness_val_per_im)
         
         return sum(fitness_vals_per_im) / len(fitness_vals_per_im)
 
@@ -99,6 +112,9 @@ class GA():
             self.individuals = np.random.choice(offspring, len(self.individuals), proportions)
 
         #FIXME - add more selection policies
+    
+    def optimal_centroid():
+
 
 # An individual defined by a set centroids (blocks)
 class Individual():
