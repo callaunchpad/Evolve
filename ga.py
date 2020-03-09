@@ -7,7 +7,7 @@ import keras
 class GA():
 
     # Initialize genetic algorithm with follows parameters
-    def __init__(self, pop_size, num_centroids, block_size, train_im, test_im, fitness_func = 'SSIM', crossover_policy = 'uniform', selection_policy = 'roulette', mutation_proportion = 0.1):
+    def __init__(self, pop_size, num_centroids, block_size, train_im, test_im, fitness_func = 'SSIM', crossover_policy = 'uniform', selection_policy = 'roulette', mutation_proportion = 0.1, mutation_policy = 'reroll'):
         self.num_centroids = num_centroids
         self.block_size = block_size
         self.train_im = train_im
@@ -58,12 +58,13 @@ class GA():
 
     # function that mutates individual for more biological feel to algorithm
     def mutate(self, ind):
-        c = ind.centroids
-        newC = []
-        for i in range(c.shape[0]):
-            replace = (np.random.random(c.shape[1:])<self.mutation_proportion)*1
-            newC.append(c[i]*(1-replace)+np.random.randint(0, 256, c[i].shape)*replace)
-        return Individual(centroids = np.array(newC))
+        if self.mutation_policy == 'reroll':
+            c = ind.centroids
+            newC = []
+            for i in range(c.shape[0]):
+                replace = (np.random.random(c.shape[1:])<self.mutation_proportion)*1
+                newC.append(c[i]*(1-replace)+np.random.randint(0, 256, c[i].shape)*replace)
+            return Individual(centroids = np.array(newC))
 
     # mates the current individuals by [i, i+1] and creates n offspring per couple
     def mate(self, n_offspring_per_couple):
