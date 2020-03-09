@@ -59,9 +59,11 @@ class GA():
     # function that mutates individual for more biological feel to algorithm
     def mutate(self, ind):
         c = ind.centroids
-        replace = (np.random.random(c.shape)<self.mutation_proportion)*1
-        newC = c*(1-replace)+np.random.randint(0, 256, c.shape)*replace
-        return Individual(centroids = newC)
+        newC = []
+        for i in range(c.shape[0]):
+            replace = (np.random.random(c.shape[1:])<self.mutation_proportion)*1
+            newC.append(c[i]*(1-replace)+np.random.randint(0, 256, c[i].shape)*replace)
+        return Individual(centroids = np.array(newC))
 
     # mates the current individuals by [i, i+1] and creates n offspring per couple
     def mate(self, n_offspring_per_couple):
