@@ -7,11 +7,18 @@ import keras
 class GA():
 
     # Initialize genetic algorithm with follows parameters
-    def __init__(self, pop_size, num_centroids, block_size, train_im, test_im, fitness_func = 'SSIM', crossover_policy = 'uniform', selection_policy = 'roulette', mutation_proportion = 0.1, mutation_policy = 'reroll'):
+    def __init__(self, pop_size, num_centroids, block_size, train_im, train_blocks, test_im, 
+        test_blocks, fitness_func = 'SSIM', crossover_policy = 'uniform', 
+        selection_policy = 'roulette', mutation_proportion = 0.1, 
+        mutation_policy = 'reroll'):
+
         self.num_centroids = num_centroids
         self.block_size = block_size
+
         self.train_im = train_im
         self.test_im = test_im
+        self.train_blocks = train_blocks
+        self.test_blocks = test_blocks
         
         self.pop_size = pop_size
         self.individuals = []
@@ -21,6 +28,7 @@ class GA():
         self.crossover_policy = crossover_policy
         self.selection_policy = selection_policy
         self.dssim = DSSIMObjective(kernel_size=3).__call__
+        self.ssim = lambda im1, im2: 1 - self.dssim(im1, im2)
         self.mse = keras.losses.mean_squared_error
         
         for i in range(pop_size):
@@ -50,11 +58,16 @@ class GA():
         #FIXME - add more crossover policies
     
     # function that returns a fitnesss value for an individual based on a set of images
-    def fitness(self, images, ind):
-        #FIXME - find fitness values of this individual based on images
-        # Haven't implemented yet since we still need to implement
-        # the efficient image saving/access stuff
-        return 0
+    def fitness(self, ind, batch_size = 16):
+        reconstruct = None
+        used_indeces = np.random.choice(self.pop_size, batch_size)
+        fitness_vals_per_im = []
+
+        for i in used_indeces:
+            reconstructed = reconstruct(self.train_blocks[i])
+            fitness_vals_per_im.append(self.ssim(reconstructed, self.train_im[i]))
+        
+        return sum(fitness_vals_per_im) / len(fitness_vals_per_im)
 
     # function that mutates individual for more biological feel to algorithm
     def mutate(self, ind):
