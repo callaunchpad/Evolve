@@ -6,6 +6,7 @@ def process(vid_path, dim1, dim2, n):
     out = crop_vid(vid_path, dim1, dim2)
     out2 = save_nth_frames(out, n)
     out3 = concat_all("./npy/", dim1, dim2)
+    return out3
 
 # crops video to dim1, dim2
 def crop_vid(vid_path, dim1, dim2):
@@ -58,3 +59,4 @@ def concat_all(path, dim1, dim2):
 
     concat = np.concatenate([arrays])
     np.save("all_frames", concat)
+    return "all_frames"
