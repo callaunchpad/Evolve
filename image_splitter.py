@@ -1,18 +1,14 @@
 # USAGE
-# python3 image_splitter.py -i input.jpg -n 100 -m 100 -p 0
-
+# python3 image_splitter.py -i input.jpg -H 100 -W 100 -p 1
 
 # import the necessary packages
 import numpy as np
 import argparse
-import imutils
 import cv2
 import os
-import sys
 
-#np.save("output,npz",a=obj)
 ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image_name", required=True,
+ap.add_argument("-i", "--image_name", required=False,default="input.jpg",
 	help="image name")
 ap.add_argument("-H", "--rows", required=True,
 	help="num rows")
@@ -26,8 +22,12 @@ args = vars(ap.parse_args())
 patchRows = int(args["rows"])
 patchColumns = int(args["columns"])
 
-def split(H=patchRows,W=patchColumns):
-	img = cv2.imread(args["image_name"])
+output = [] # each entry being one patch, (shape should be num patches per frame x num frames)
+
+
+def split_single_frame(frame_num,img,H=patchRows,W=patchColumns):
+
+	global output
 
 	#Actual height & width of image
 	height = img.shape[0]
@@ -40,25 +40,24 @@ def split(H=patchRows,W=patchColumns):
 	#Padding setting
 	padding = int(args['padding'])
 
-	if padding == 0:
+	if padding == 0: #zero padding
 		img2 = cv2.copyMakeBorder(img, 0, patchRows - height % patchRows, 0, patchColumns - width % patchColumns, cv2.BORDER_CONSTANT, (0,0,0,0))
-	elif padding == 1:
+	elif padding == 1: #edge copying padding
 		img2 = cv2.copyMakeBorder(img, 0, patchRows - height % patchRows, 0, patchColumns - width % patchColumns, cv2.BORDER_REPLICATE)
-	elif padding == 2:
+	elif padding == 2: #edge reflection padding
 		img2 = cv2.copyMakeBorder(img, 0, patchRows - height % patchRows, 0, patchColumns - width % patchColumns, cv2.BORDER_REFLECT)
-	elif padding == 3:
+	elif padding == 3: #oleksii padding
 		img2 = img
 
+	if not os.path.exists(str(frame_num)+'_patches'):
+		os.makedirs(str(frame_num)+'_patches')
 
-	#cv2.imshow("Image2", img2)
-	cv2.imwrite("patches/img2.jpg",img2)
+	cv2.imwrite(str(frame_num)+"_patches/_resized_img.jpg",img2)
 
 	# Number of rows (Of Patches)
 	nRows = height//patchRows
 	# Number of columns (Of Patches)
 	mCols = width//patchColumns
-
-	print(img.shape)
 
 	#this for loop does not pad at the moment
 	#added one to account for padding the rest'
@@ -69,8 +68,11 @@ def split(H=patchRows,W=patchColumns):
 
 				roi = img2[i*patchRows:i*patchRows + patchRows ,j*patchColumns:j*patchColumns + patchColumns]
 
-				#cv2.imshow('rois'+str(i)+str(j), roi)
-				cv2.imwrite('patches/patch_'+str(i)+str(j)+".jpg", roi)
+				cv2.imwrite(str(frame_num)+'_patches/patch_'+str(i)+str(j)+".jpg", roi)
+				output.append(roi)
+
+
+
 	else:
 		for i in range(0,nRows + 1):
 			for j in range(0, mCols + 1):
@@ -83,19 +85,23 @@ def split(H=patchRows,W=patchColumns):
 				else:
 					roi = img[i*patchRows:i*patchRows + patchRows, j*patchColumns:j*patchColumns + patchColumns]
 
-				#cv2.imshow('rois'+str(i)+str(j), roi)
-				cv2.imwrite('patches/patch_'+str(i)+str(j)+".jpg", roi)
-
-
-	print("done.")
+				cv2.imwrite(str(frame_num)+'_patches/patch_'+str(i)+str(j)+".jpg", roi)
+				output.append(roi)
 
 if __name__ == "__main__":
+	
+	#movie of 480x360 images 10 frames long
+	random_movie = []
+	for i in range(10):
+		random_movie.append((np.random.standard_normal([360, 480, 3]) * 255).astype(np.uint8))
+	np.save("random_movie",random_movie)
 
-	random_input = np.random.rand(10,1920,1080)*255 #10 frames of 1920x1080 input image
-	np.save("random_input",random_input)
-	img = np.load("random_input.npy")
+	#loading in video input
+	video_input = np.load("random_movie.npy")
 
-	if not os.path.exists('patches'):
-		os.makedirs('patches')
+	for i in range(len(video_input)):
+		split_single_frame(i,video_input[i])
 
-	split()
+	print(np.asarray(output).shape) #verification
+	np.save("splitted_output",output)
+
