@@ -9,7 +9,6 @@ class HuffmanEncoder:
         for row in dataset: 
             c.update(row)
         self.collection = c
-        print(self.collection)
         self.codec = HuffmanCodec.from_frequencies(self.collection)
         
     #Returns bytes object, looks like a string random characters. 
