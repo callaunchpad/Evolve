@@ -10,7 +10,7 @@ class GA():
     # Initialize genetic algorithm with follows parameters
     def __init__(self, pop_size, num_centroids, block_size, train_im, train_blocks, test_im, 
         test_blocks, fitness_func = 'SSIM', crossover_policy = 'uniform', 
-        selection_policy = 'proportionate', mutation_proportion = 0.01, 
+        selection_policy = 'proportionate', mutation_proportion = 0.1, 
         mutation_policy = 'reroll'):
 
         self.num_centroids = num_centroids
@@ -47,7 +47,7 @@ class GA():
         if self.crossover_policy == 'uniform':
             uniform = []
             for i in range(ind1.num_centroids):
-                pt = np.random.randint(low=0, high=1, size=1)[0]
+                pt = np.random.randint(low=0, high=2, size=1)[0]
                 if pt:
                     uniform.append(ind1.centroids[i])
                 else:
@@ -65,7 +65,8 @@ class GA():
     
     # function that returns a fitnesss value for an individual based on a set of images
     def fitness(self, ind, batch_size = 2):
-        used_indeces = np.random.choice(self.train_im.shape[0], batch_size)
+        #used_indeces = np.random.choice(self.train_im.shape[0], batch_size)
+        used_indeces = [0, 100]
         fitness_val_per_im = []
 
         def closest_centroid(bl):
@@ -97,28 +98,28 @@ class GA():
     # mates the current individuals by [i, i+1] and creates n offspring per couple
     def mate(self, n_offspring_per_couple):
         offspring = []
-        for i in range(len(self.individuals) - 1):
+        for i in [x for x in range(100) if x % 2 == 0]:
             child = self.crossover(self.individuals[i], self.individuals[i + 1])
             for _ in range(n_offspring_per_couple):
                 offspring.append(self.mutate(child))
-            i = i + 1
         return offspring
     
     # runs one epoch of the mating process
     def iterate(self):
         print('mating...')
-        offspring = self.mate(2)
+        offspring = self.mate(10)
         print('calculating all fitness...')
         fitness_vals = [self.fitness(ind) for ind in offspring]
-
+        temp = fitness_vals[:]
+        temp.sort(reverse = True)
+        print("TOP 5 FITNESS:", sum(temp[:5]) / 5)
         if self.selection_policy == 'proportionate':
             print('calculating proportions...')
             proportions = [val / sum(fitness_vals) for val in fitness_vals]
             print('choosing at random now...')
             self.individuals = np.random.choice(offspring, len(self.individuals), proportions)
-            #print('mutating...')
-            #self.individuals = [self.mutate(ind) for ind in self.individuals]
-
+        print("finished iter")
+        print("______________")
         #FIXME - add more selection policies
     
     def top_5_fitness(self):
