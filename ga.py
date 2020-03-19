@@ -90,10 +90,8 @@ class GA():
     def mutate(self, ind):
         if self.mutation_policy == 'reroll':
             c = ind.centroids
-            newC = []
-            for i in range(c.shape[0]):
-                replace = (np.random.random(c.shape[1:])<self.mutation_proportion)*1
-                newC.append(c[i]*(1-replace)+np.random.randint(0, 256, c[i].shape)*replace)
+            replace = (np.random.random(c.shape)<self.mutation_proportion)*1
+            newC = (c*(1-replace)+np.random.randint(0, 256, c.shape)*replace)
             return Individual(centroids = np.array(newC))
 
     # mates the current individuals by [i, i+1] and creates n offspring per couple
