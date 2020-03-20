@@ -17,11 +17,12 @@ args = vars(ap.parse_args())
 
 
 #(num_centroids, block_width, block_height, 3)
-read_array = np.random.randn(30, 100, 100, 3)*255
+# read_array = np.random.randn(30, 100, 100, 3)*255
+read_array = np.load("output_array.npy")
 
 output = [] # each horizontal row
 
-def remake_frame(frame_num,img,H=len(read_array[1]),W=len(read_array[2])):
+def remake_frame(img,H=len(read_array[1]),W=len(read_array[2])):
 
     global output
 
@@ -45,10 +46,10 @@ def remake_frame(frame_num,img,H=len(read_array[1]),W=len(read_array[2])):
     elif padding == 3: #oleksii padding
         img2 = img
 
-    if not os.path.exists("debug_output/"+str(frame_num)+'_blocks'):
-        os.makedirs("debug_output/"+str(frame_num)+'_blocks')
+    if not os.path.exists("debug_output/"+'test'):
+        os.makedirs("debug_output/"+'test')
 
-    cv2.imwrite("debug_output/"+str(frame_num)+"_blocks/_resized_img.jpg",img2)
+    cv2.imwrite("debug_output/"+"test/_resized_img.jpg",img2)
 
     # Number of rows (Of Blocks)
     nRows = height//blockRows
@@ -69,7 +70,7 @@ def remake_frame(frame_num,img,H=len(read_array[1]),W=len(read_array[2])):
 
                 print(np.where(read_array == best))
 
-                cv2.imwrite("debug_output/"+str(frame_num)+'_blocks/block'+str(i)+str(j)+".jpg", best)
+                cv2.imwrite("debug_output/"+'test/block'+str(i)+str(j)+".jpg", best)
 
                 rowArray.append(best)
 
@@ -100,7 +101,7 @@ def remake_frame(frame_num,img,H=len(read_array[1]),W=len(read_array[2])):
 
                 print(np.where(read_array == best))
 
-                cv2.imwrite("debug_output/"+str(frame_num)+'_blocks/block'+str(i)+str(j)+".jpg", best)
+                cv2.imwrite("debug_output/"+'test/block'+str(i)+str(j)+".jpg", best)
 
                 rowArray.append(best)
 
@@ -136,7 +137,7 @@ if __name__ == "__main__":
     """
     input_image = cv2.imread(args["image_name"])
 
-    remake_frame(1, input_image)
+    remake_frame(input_image)
 
     print(np.asarray(output).shape) #verify output shape
     np.save("blockified_output",output)
