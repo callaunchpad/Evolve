@@ -1,3 +1,5 @@
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '6, 7'
 import numpy as np
 import cv2
 from keras_contrib.losses import DSSIMObjective
@@ -5,14 +7,14 @@ import tensorflow as tf
 import keras
 from keras import backend as K
 from image_utils import *
-
+from tqdm import tqdm
 # Class for Genetic Algorithm
 class GA():
 
     # Initialize genetic algorithm with follows parameters
     def __init__(self, pop_size, num_centroids, block_size, train_im, train_blocks, test_im, 
         test_blocks, fitness_func = 'SSIM', crossover_policy = 'uniform', 
-        selection_policy = 'proportionate', mutation_proportion = 0.1, 
+        selection_policy = 'proportionate', mutation_proportion = 0.2, 
         mutation_policy = 'reroll'):
 
         self.num_centroids = num_centroids
@@ -102,7 +104,7 @@ class GA():
     # mates the current individuals by [i, i+1] and creates n offspring per couple
     def mate(self, n_offspring_per_couple):
         offspring = []
-        for i in [x for x in range(100) if x % 2 == 0]:
+        for i in [x for x in range(self.pop_size) if x % 2 == 0]:
             child = self.crossover(self.individuals[i], self.individuals[i + 1])
             for _ in range(n_offspring_per_couple):
                 offspring.append(self.mutate(child))
@@ -110,20 +112,22 @@ class GA():
     
     # runs one epoch of the mating process
     def iterate(self):
-        print('mating...')
-        offspring = self.mate(2)
-        print('calculating all fitness...')
-        fitness_vals = [self.fitness(ind) for ind in offspring]
+        print("-----Iteration%2d-----" % self.epoch)
+        offspring = self.mate(4)
+        print("Fitness Value Calculations...")
+        fitness_vals = []
+        for i in tqdm(range(len(offspring))):
+            fitness_vals.append(self.fitness(offspring[i]))
+        #fitness_vals = [self.fitness(ind) for ind in offspring]
         temp = fitness_vals[:]
         temp.sort(reverse = True)
-        print("TOP 5 FITNESS:", sum(temp[:5]) / 5)
+        print("Top 5 Fitness Score:", sum(temp[:5]) / 5)
         if self.selection_policy == 'proportionate':
-            print('calculating proportions...')
             proportions = [val / sum(fitness_vals) for val in fitness_vals]
-            print('choosing at random now...')
             self.individuals = np.random.choice(offspring, len(self.individuals), proportions)
-        print("finished iter")
-        print("______________")
+        if self.epoch % 20 == 0:
+            np.save("exper/curr_pop_"+str(self.epoch)+".npy", self.individuals, allow_pickle = True)
+        self.epoch = self.epoch + 1
         #FIXME - add more selection policies
     
     def top_5_fitness(self):
