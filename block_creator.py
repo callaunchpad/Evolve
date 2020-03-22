@@ -11,9 +11,9 @@ while 1:
         if count % 50 == 0:
             dst = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             out_ims.append(dst)
-            block_dst = np.hsplit(dst, 16)
+            block_dst = np.vsplit(dst, 9)
             # print(np.array(block_dst).shape)
-            block_dst = [np.vsplit(bl, 9) for bl in block_dst]
+            block_dst = [np.hsplit(bl, 16) for bl in block_dst]
             print(np.array(block_dst).shape)
             block_dst = np.reshape(block_dst, (144, 80, 80, 3))
             out_blocks.append(block_dst)

@@ -1,8 +1,10 @@
 import numpy as np
 import cv2
 from keras_contrib.losses import DSSIMObjective
+import tensorflow as tf
 import keras
 from keras import backend as K
+from image_utils import *
 
 # Class for Genetic Algorithm
 class GA():
@@ -33,7 +35,7 @@ class GA():
         self.crossover_policy = crossover_policy
         self.selection_policy = selection_policy
         self.dssim = DSSIMObjective(kernel_size=3).__call__
-        self.ssim = lambda im1, im2: 1 - self.dssim(im1, im2)
+        self.ssim = lambda im1, im2: 1 - K.get_value(self.dssim(tf.cast(np.array(im1), tf.float32), tf.cast(np.array(im2), tf.float32)))
         #self.mse = lambda im1, im2: K.get_value(K.mean(keras.losses.mean_squared_error(im1, im2)))
         self.mse = lambda im1, im2: ((im1 - im2) ** 2).flatten().mean()
         
@@ -79,13 +81,15 @@ class GA():
                     close_block = centroid
             return centroid
         
-        centroid_error = 0
-        count = 0
+        ground_truths = []
+        constructed = []
         for i in used_indeces:
-            for block in self.train_blocks[i]:
-                centroid_error = centroid_error + self.mse(closest_centroid(block), block)
+            constructed_im = reconstruct(np.array([closest_centroid(block) for block in self.train_blocks[i]]), self.train_im[0].shape)
+            ground_truths.append(self.train_im[i])
+            constructed.append(constructed_im)
         
-        return -centroid_error / batch_size
+        scores = self.ssim(ground_truths, constructed)
+        return np.average(scores)
         
     # function that mutates individual for more biological feel to algorithm
     def mutate(self, ind):
@@ -107,7 +111,7 @@ class GA():
     # runs one epoch of the mating process
     def iterate(self):
         print('mating...')
-        offspring = self.mate(10)
+        offspring = self.mate(2)
         print('calculating all fitness...')
         fitness_vals = [self.fitness(ind) for ind in offspring]
         temp = fitness_vals[:]
