@@ -13,7 +13,7 @@ class GA():
 
     # Initialize genetic algorithm with follows parameters
     def __init__(self, pop_size, num_centroids, block_size, train_im, train_blocks, test_im, 
-        test_blocks, fitness_func = 'SSIM', crossover_policy = 'uniform', 
+        test_blocks, fitness_func = 'SSIM', crossover_policy = 'uniform', mating_policy = 'oleksii',
         selection_policy = 'proportionate', mutation_proportion = 0.2, 
         mutation_policy = 'reroll'):
 
@@ -31,6 +31,7 @@ class GA():
         self.mutation_policy = mutation_policy
         self.crossover_policy = crossover_policy
         self.selection_policy = selection_policy
+        self.mating_policy = mating_policy
         
         self.mutation_proportion = mutation_proportion
         self.fitness_func = fitness_func
@@ -102,29 +103,33 @@ class GA():
             return Individual(centroids = np.array(newC))
 
     # mates the current individuals by [i, i+1] and creates n offspring per couple
-    def mate(self, n_offspring_per_couple):
+    def mate(self, mating_pool, n_offsprings):
         offspring = []
-        for i in [x for x in range(self.pop_size) if x % 2 == 0]:
-            child = self.crossover(self.individuals[i], self.individuals[i + 1])
-            for _ in range(n_offspring_per_couple):
-                offspring.append(self.mutate(child))
+        if self.mating_policy == 'sequential':
+            for i in [x for x in range(len(mating_pool)) if x % 2 == 0]:
+                child = self.crossover(mating_pool[i], mating_pool[i + 1])
+                for _ in range(n_offsprings // len(mating_pool)):
+                    offspring.append(self.mutate(child))
+        elif self.mating_policy == 'oleksii':
+            while len(offspring) < n_offsprings:
+                pts = np.random.randint(low=0, high=len(mating_pool), size=2)
+                child = self.crossover(mating_pool[pts[0]], mating_pool[pts[1]])
+                offspring.append(child)
         return offspring
     
     # runs one epoch of the mating process
     def iterate(self):
         print("-----Iteration%2d-----" % self.epoch)
-        offspring = self.mate(4)
-        print("Fitness Value Calculations...")
-        fitness_vals = []
-        for i in tqdm(range(len(offspring))):
-            fitness_vals.append(self.fitness(offspring[i]))
-        #fitness_vals = [self.fitness(ind) for ind in offspring]
-        temp = fitness_vals[:]
-        temp.sort(reverse = True)
-        print("Top 5 Fitness Score:", sum(temp[:5]) / 5)
+        fitness_vals 
+        for i in tqdm(range(len(self.individuals))):
+            fitness_vals.append(self.fitness(self.individuals[i]) ** 2)
+        
         if self.selection_policy == 'proportionate':
             proportions = [val / sum(fitness_vals) for val in fitness_vals]
-            self.individuals = np.random.choice(offspring, len(self.individuals), proportions)
+            parents_to_keep = np.random.choice(self.individuals, len(self.individuals) * 3 // 4, proportions)
+            new_offspring = self.mate(parents_to_keep, len(self.individuals) // 4)
+            self.individuals = parents_to_keep + new_offspring
+
         if self.epoch % 20 == 0:
             np.save("exper/curr_pop_"+str(self.epoch)+".npy", self.individuals, allow_pickle = True)
         self.epoch = self.epoch + 1
