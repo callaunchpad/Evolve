@@ -14,7 +14,7 @@ class GA():
     # Initialize genetic algorithm with follows parameters
     def __init__(self, pop_size, num_centroids, block_size, train_im, train_blocks, test_im, 
         test_blocks, fitness_func = 'SSIM', crossover_policy = 'uniform', mating_policy = 'oleksii',
-        selection_policy = 'proportionate', mutation_proportion = 0.2, 
+        selection_policy = 'proportionate', mutation_proportion = 0.05, 
         mutation_policy = 'reroll'):
 
         self.num_centroids = num_centroids
@@ -120,15 +120,20 @@ class GA():
     # runs one epoch of the mating process
     def iterate(self):
         print("-----Iteration%2d-----" % self.epoch)
-        fitness_vals 
+        fitness_vals = [] 
         for i in tqdm(range(len(self.individuals))):
             fitness_vals.append(self.fitness(self.individuals[i]) ** 2)
+
+        # Print fitness score
+        temp = fitness_vals[:]
+        temp.sort(reverse = True)
+        print("Top 5 Fitness Average:", sum(temp[:5]) / 5)
         
         if self.selection_policy == 'proportionate':
             proportions = [val / sum(fitness_vals) for val in fitness_vals]
             parents_to_keep = np.random.choice(self.individuals, len(self.individuals) * 3 // 4, proportions)
             new_offspring = self.mate(parents_to_keep, len(self.individuals) // 4)
-            self.individuals = parents_to_keep + new_offspring
+            self.individuals = np.hstack([parents_to_keep, new_offspring])
 
         if self.epoch % 20 == 0:
             np.save("exper/curr_pop_"+str(self.epoch)+".npy", self.individuals, allow_pickle = True)
