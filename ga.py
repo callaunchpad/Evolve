@@ -8,13 +8,14 @@ import keras
 from keras import backend as K
 from image_utils import *
 from tqdm import tqdm
+tf.logging.set_verbosity(tf.logging.ERROR)
 # Class for Genetic Algorithm
 class GA():
 
     # Initialize genetic algorithm with follows parameters
     def __init__(self, pop_size, num_centroids, block_size, train_im, train_blocks, test_im, 
         test_blocks, fitness_func = 'SSIM', crossover_policy = 'uniform', mating_policy = 'oleksii',
-        selection_policy = 'proportionate', mutation_proportion = 0.05, 
+        selection_policy = 'proportionate', mutation_proportion = 0.2, 
         mutation_policy = 'reroll'):
 
         self.num_centroids = num_centroids
@@ -88,9 +89,8 @@ class GA():
         constructed = []
         for i in used_indeces:
             constructed_im = reconstruct(np.array([closest_centroid(block) for block in self.train_blocks[i]]), self.train_im[0].shape)
-            ground_truths.append(self.train_im[i])
-            constructed.append(constructed_im)
-        
+        ground_truths.append(self.train_im[i])
+        constructed.append(constructed_im)
         scores = self.ssim(ground_truths, constructed)
         return np.average(scores)
         
@@ -114,7 +114,7 @@ class GA():
             while len(offspring) < n_offsprings:
                 pts = np.random.randint(low=0, high=len(mating_pool), size=2)
                 child = self.crossover(mating_pool[pts[0]], mating_pool[pts[1]])
-                offspring.append(child)
+                offspring.append(self.mutate(child))
         return offspring
     
     # runs one epoch of the mating process
@@ -123,16 +123,17 @@ class GA():
         fitness_vals = [] 
         for i in tqdm(range(len(self.individuals))):
             fitness_vals.append(self.fitness(self.individuals[i]) ** 2)
-
+        print(fitness_vals)
+        print(self.train_im.shape)
         # Print fitness score
         temp = fitness_vals[:]
         temp.sort(reverse = True)
-        print("Top 5 Fitness Average:", sum(temp[:5]) / 5)
+        print("Top 5 Fitness Average:", sum([val**0.5 for val in temp[:5]]) / 5)
         
         if self.selection_policy == 'proportionate':
             proportions = [val / sum(fitness_vals) for val in fitness_vals]
-            parents_to_keep = np.random.choice(self.individuals, len(self.individuals) * 3 // 4, proportions)
-            new_offspring = self.mate(parents_to_keep, len(self.individuals) // 4)
+            parents_to_keep = np.random.choice(self.individuals, len(self.individuals) // 2, proportions)
+            new_offspring = self.mate(parents_to_keep, len(self.individuals) // 2)
             self.individuals = np.hstack([parents_to_keep, new_offspring])
 
         if self.epoch % 20 == 0:
@@ -142,7 +143,7 @@ class GA():
     
     def top_5_fitness(self):
         temp = self.individuals
-        temp.sort(key = self.fitness)
+        temp.sort(key = self.fitness, reverse = True)
         fitness_sum = 0
         for i in range(5):
             fitness_sum = fitness_sum + self.fitness(temp[i])
