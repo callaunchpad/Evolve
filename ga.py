@@ -89,8 +89,8 @@ class GA():
         constructed = []
         for i in used_indeces:
             constructed_im = reconstruct(np.array([closest_centroid(block) for block in self.train_blocks[i]]), self.train_im[0].shape)
-        ground_truths.append(self.train_im[i])
-        constructed.append(constructed_im)
+            ground_truths.append(self.train_im[i])
+            constructed.append(constructed_im)
         scores = self.ssim(ground_truths, constructed)
         return np.average(scores)
         
