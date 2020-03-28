@@ -67,7 +67,16 @@ class GA():
             pt = np.random.randint(low=0, high=ind1.num_centroids, size=2)
             two_point = np.hstack((ind1.centroids[:pt[0]], ind2.centroids[pt[0]:pt[1]], ind1.centroids[pt[1]:]))
             return Individual(centroids = two_point)
-        #FIXME - add more crossover policies
+        elif self.crossover_policy == 'centroid_freq':
+            lc1 = list(ind1.centroids)
+            lc2 = list(ind2.centroids)
+            ind1_centroids = [x for _, x in sorted(zip(ind1.freq, lc1), key=lambda pair: pair[0], reverse=True)]
+            ind2_centroids = [x for _, x in sorted(zip(ind2.freq, lc2), key=lambda pair: pair[0], reverse=True)]
+            ind1_centroids = np.array(ind1_centroids[:len(lc1)//2])
+            ind2_centroids = np.array(ind2_centroids[:len(lc2)//2])
+            top_centroids = np.vstack((ind1_centroids, ind2_centroids))
+            return Individual(centroids = top_centroids)
+            
     
     # function that returns a fitnesss value for an individual based on a set of images
     def fitness(self, ind, batch_size = 2):
@@ -78,12 +87,16 @@ class GA():
         def closest_centroid(bl):
             close = self.mse(bl, ind.centroids[0])
             close_block = ind.centroids[0]
-            for centroid in ind.centroids:
-                error = self.mse(bl, centroid)
+            index = 0
+            for i in range(len(ind.centroids)):
+                error = self.mse(bl, ind.centroids[i])
                 if error < close:
                     close = error
-                    close_block = centroid
-            return centroid
+                    close_block = ind.centroids[i]
+                    index = i
+            if (self.crossover_policy == 'centroid_freq'):
+                ind.freq[index] = ind.freq[index] + 1
+            return close_block
         
         ground_truths = []
         constructed = []
@@ -169,3 +182,6 @@ class Individual():
                 self.centroids.append(rand_im)
 
             self.centroids = np.array(self.centroids)
+        self.freq = []
+        for i in range(num_centroids):
+            self.freq.append(0)
