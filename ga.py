@@ -15,7 +15,7 @@ class GA():
     # Initialize genetic algorithm with follows parameters
     def __init__(self, pop_size, num_centroids, block_size, train_im, train_blocks, test_im, 
         test_blocks, fitness_func = 'SSIM', crossover_policy = 'uniform', mating_policy = 'oleksii',
-        selection_policy = 'proportionate', mutation_proportion = 0.2, 
+        selection_policy = 'proportionate', mutation_proportion = 0.05, 
         mutation_policy = 'reroll'):
 
         self.num_centroids = num_centroids
@@ -81,7 +81,7 @@ class GA():
     # function that returns a fitnesss value for an individual based on a set of images
     def fitness(self, ind, batch_size = 2):
         #used_indeces = np.random.choice(self.train_im.shape[0], batch_size)
-        used_indeces = [0, 100]
+        used_indeces = [0]
         fitness_val_per_im = []
 
         def closest_centroid(bl):
@@ -100,12 +100,17 @@ class GA():
         
         ground_truths = []
         constructed = []
+        out = 0
         for i in used_indeces:
             constructed_im = reconstruct(np.array([closest_centroid(block) for block in self.train_blocks[i]]), self.train_im[0].shape)
-            ground_truths.append(self.train_im[i])
-            constructed.append(constructed_im)
-        scores = self.ssim(ground_truths, constructed)
-        return np.average(scores)
+            cv2.imwrite('yo.png', constructed_im)
+            out += self.mse(constructed_im, self.train_im[i])
+
+            #ground_truths.append(self.train_im[i])
+            #constructed.append(constructed_im)
+        #scores = self.mse(np.array(ground_truths, constructed)
+        #return score
+        return 1 / (out / len(used_indeces) / 3072)
         
     # function that mutates individual for more biological feel to algorithm
     def mutate(self, ind):
@@ -135,13 +140,15 @@ class GA():
         print("-----Iteration%2d-----" % self.epoch)
         fitness_vals = [] 
         for i in tqdm(range(len(self.individuals))):
-            fitness_vals.append(self.fitness(self.individuals[i]) ** 2)
+            fit = self.fitness(self.individuals[i])
+            mult = 1 if fit > 0 else -1
+            fitness_vals.append((fit ** 2) * mult)
         print(fitness_vals)
         print(self.train_im.shape)
         # Print fitness score
         temp = fitness_vals[:]
         temp.sort(reverse = True)
-        print("Top 5 Fitness Average:", sum([val**0.5 for val in temp[:5]]) / 5)
+        print("Top 5 Fitness Average:", sum([((abs(val)**0.5) * (val/abs(val))) for val in temp[:5]]) / 5)
         
         if self.selection_policy == 'proportionate':
             proportions = [val / sum(fitness_vals) for val in fitness_vals]
@@ -168,7 +175,7 @@ class GA():
 
 # An individual defined by a set centroids (blocks)
 class Individual():
-    def __init__(self, num_centroids = 100, block_size = (5, 5), centroids = None):
+    def __init__(self, num_centroids = 100, block_size = (5, 5, 3), centroids = None):
         if centroids is not None:
             self.centroids = np.array(centroids)
             self.num_centroids = self.centroids.shape[0]
@@ -176,10 +183,10 @@ class Individual():
             self.num_centroids = num_centroids
             self.centroids = []
 
-            block_height, block_width = block_size
             for i in range(num_centroids):
-                rand_im = np.random.randint(255, size=(block_height, block_width, 3),dtype=np.uint8)
-                self.centroids.append(rand_im)
+                #rand_im = np.random.randint(255, size=block_size,dtype=np.uint8)
+                rand_num = np.random.randint(255)
+                self.centroids.append(np.ones((block_size))*rand_num)
 
             self.centroids = np.array(self.centroids)
         self.freq = []
