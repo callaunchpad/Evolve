@@ -8,6 +8,7 @@ import keras
 from keras import backend as K
 from image_utils import *
 from tqdm import tqdm
+from scipy.ndimage import gaussian_filter
 tf.logging.set_verbosity(tf.logging.ERROR)
 # Class for Genetic Algorithm
 class GA():
@@ -40,7 +41,6 @@ class GA():
         self.selection_policy = selection_policy
         self.dssim = DSSIMObjective(kernel_size=3).__call__
         self.ssim = lambda im1, im2: 1 - K.get_value(self.dssim(tf.cast(np.array(im1), tf.float32), tf.cast(np.array(im2), tf.float32)))
-        #self.mse = lambda im1, im2: K.get_value(K.mean(keras.losses.mean_squared_error(im1, im2)))
         self.mse = lambda im1, im2: ((im1 - im2) ** 2).flatten().mean()
         
         for i in range(pop_size):
@@ -61,12 +61,17 @@ class GA():
             return Individual(centroids = uniform)
         elif self.crossover_policy == 'one_point':
             pt = np.random.randint(low=0, high=ind1.num_centroids, size=1)[0]
-            one_point = np.hstack((ind1.centroids[:pt], ind2.centroids[pt:]))
+            one_point = np.vstack((ind1.centroids[:pt], ind2.centroids[pt:]))
             return Individual(centroids = one_point)
         elif self.crossover_policy == 'two_point':
             pt = np.random.randint(low=0, high=ind1.num_centroids, size=2)
-            two_point = np.hstack((ind1.centroids[:pt[0]], ind2.centroids[pt[0]:pt[1]], ind1.centroids[pt[1]:]))
+            two_point = np.vstack((ind1.centroids[:pt[0]], ind2.centroids[pt[0]:pt[1]], ind1.centroids[pt[1]:]))
             return Individual(centroids = two_point)
+        elif self.crossover_policy == 'centroid_one_point':
+            pts = np.round(np.random.normal(loc = 0.5, scale = 0.1, size=(ind1.num_centroids))*ind1.centroids.shape[1]).astype(np.int64)
+            one_point_1 = np.array([np.vstack((ind1.centroids[i][:pts[i]], ind2.centroids[i][pts[i]:])) for i in range(ind1.num_centroids)])
+            one_point_2 = np.array([np.vstack((ind2.centroids[i][:pts[i]], ind1.centroids[i][pts[i]:])) for i in range(ind1.num_centroids)])
+            return Individual(centroids = one_point_1), Individual(centroids = one_point_2)
         elif self.crossover_policy == 'centroid_freq':
             lc1 = list(ind1.centroids)
             lc2 = list(ind2.centroids)
@@ -76,41 +81,38 @@ class GA():
             ind2_centroids = np.array(ind2_centroids[:len(lc2)//2])
             top_centroids = np.vstack((ind1_centroids, ind2_centroids))
             return Individual(centroids = top_centroids)
-            
-    
+        
     # function that returns a fitnesss value for an individual based on a set of images
     def fitness(self, ind, batch_size = 2):
         #used_indeces = np.random.choice(self.train_im.shape[0], batch_size)
         used_indeces = [0]
         fitness_val_per_im = []
-
-        def closest_centroid(bl):
-            close = self.mse(bl, ind.centroids[0])
-            close_block = ind.centroids[0]
-            index = 0
-            for i in range(len(ind.centroids)):
-                error = self.mse(bl, ind.centroids[i])
-                if error < close:
-                    close = error
-                    close_block = ind.centroids[i]
-                    index = i
-            if (self.crossover_policy == 'centroid_freq'):
-                ind.freq[index] = ind.freq[index] + 1
-            return close_block
         
+
+        mat = np.reshape(ind.centroids,
+         (ind.centroids.shape[0], ind.centroids.shape[1] * ind.centroids.shape[2] * ind.centroids.shape[3])).T
+        
+        def closest_centroid(bl):
+            bl_r = np.reshape(bl, (-1, 1))
+            norm = np.linalg.norm(mat - bl_r, axis=0)
+            return ind.centroids[np.argmin(norm, axis=0)]
         ground_truths = []
         constructed = []
         out = 0
-        for i in used_indeces:
-            constructed_im = reconstruct(np.array([closest_centroid(block) for block in self.train_blocks[i]]), self.train_im[0].shape)
-            cv2.imwrite('yo.png', constructed_im)
-            out += self.mse(constructed_im, self.train_im[i])
+        # for i in used_indeces:
+        #     constructed_im = reconstruct(np.array([closest_centroid(block) for block in self.train_blocks[i]]), self.train_im[0].shape)
+        #     cv2.imwrite('yo.png', constructed_im)
+        #     out += self.mse(constructed_im, self.train_im[i])
 
-            #ground_truths.append(self.train_im[i])
-            #constructed.append(constructed_im)
-        #scores = self.mse(np.array(ground_truths, constructed)
-        #return score
-        return 1 / (out / len(used_indeces) / 3072)
+        for i in used_indeces:
+            # train_blocks[i] - (15200, 25, 25, 1). centroids - (64, 25, 25, 1)
+            constructed_im = reconstruct(np.array([closest_centroid(block) for block in self.train_blocks[i]]), self.train_im[0].shape)
+            ground_truths.append(self.train_im[i])
+            constructed.append(constructed_im)
+            cv2.imwrite('yo.png', constructed_im)
+        scores = self.ssim(ground_truths, constructed)
+        return np.average(scores)
+        # return 1 / (out / len(used_indeces) / 3072)
         
     # function that mutates individual for more biological feel to algorithm
     def mutate(self, ind):
@@ -119,6 +121,12 @@ class GA():
             replace = (np.random.random(c.shape)<self.mutation_proportion)*1
             newC = (c*(1-replace)+np.random.randint(0, 256, c.shape)*replace)
             return Individual(centroids = np.array(newC))
+        if self.mutation_policy == 'reroll+gaussian':
+            c = ind.centroids
+            replace = (np.random.random(c.shape)<self.mutation_proportion)*1
+            newC = (c*(1-replace)+np.random.randint(0, 256, c.shape)*replace)
+            g_newC = gaussian_filter(newC, sigma=(0,1,1,0))
+            return Individual(centroids = np.array(g_newC))
 
     # mates the current individuals by [i, i+1] and creates n offspring per couple
     def mate(self, mating_pool, n_offsprings):
@@ -131,8 +139,13 @@ class GA():
         elif self.mating_policy == 'oleksii':
             while len(offspring) < n_offsprings:
                 pts = np.random.randint(low=0, high=len(mating_pool), size=2)
-                child = self.crossover(mating_pool[pts[0]], mating_pool[pts[1]])
-                offspring.append(self.mutate(child))
+                if self.crossover_policy == 'centroid_one_point':
+                    child1, child2 = self.crossover(mating_pool[pts[0]], mating_pool[pts[1]])
+                    offspring.append(self.mutate(child1))
+                    offspring.append(self.mutate(child2))
+                else:
+                    child = self.crossover(mating_pool[pts[0]], mating_pool[pts[1]])
+                    offspring.append(self.mutate(child))
         return offspring
     
     # runs one epoch of the mating process
