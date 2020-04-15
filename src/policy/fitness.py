@@ -2,7 +2,7 @@ import sys
 sys.path.append('..')
 
 import numpy as np
-from utils import reconstruct_image, closest_codeblock_index
+from utils import reconstruct_image, closest_codeblock_index, ssim
 '''
 fitness/selection/crossover/mutation.py
 - abstract away the policies into respective files (for ease of experimentation)
@@ -25,5 +25,5 @@ def ssim_reconstruct(cb, train_im, train_blocks, batch_size = 1):
         ground_truths.append(train_im[i])
         constructed.append(constructed_im)
     
-    scores = self.ssim(ground_truths, constructed)
+    scores = ssim(ground_truths, constructed)
     return np.average(scores)

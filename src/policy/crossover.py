@@ -31,7 +31,7 @@ def set_two_point(cb_1, cb_2):
     return two_point, two_point_1
 
 def block_one_point(cb_1, cb_2):
-    k = np.random.randint(len(ind1))
+    k = np.random.randint(len(cb_1))
     child1 = np.vstack((cb_1[:k], cb_2[k:]))
     child2 = np.vstack((cb_2[:k], cb_1[k:]))
     return child1, child2

@@ -24,7 +24,7 @@ def gradient(codeblocks, pop_rate=0.25, block_rate=0.25):
         block_sample_size = int(block_rate*B)
         blocks = np.random.choice(np.arange(B), size=block_sample_size, replace=False)
         grad = np.random.normal(0, 5, size=(block_sample_size, H, W, D))
-        np.add(codeblocks[i, blocks, ...], grad, out=codeblocks[i, blocks, :], casting='unsafe') 
+        np.add(codeblocks[i, blocks, :], grad, out=codeblocks[i, blocks, :], casting='unsafe') 
         codeblocks[i, blocks, :] = np.clip(codeblocks[i, blocks, :], 0, 255)
         codeblocks[i, blocks, :] = codeblocks[i, blocks, :].astype(np.int64)
     return codeblocks

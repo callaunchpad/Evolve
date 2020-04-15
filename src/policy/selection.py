@@ -7,6 +7,6 @@ fitness/selection/crossover/mutation.py
 '''
 def proportionate(fitness_vals):
     proportions = fitness_vals / sum(fitness_vals)
-    choices = np.random.choice(np.arange(len(fit_vals)), len(fitness_vals), p = proportions)
+    choices = np.random.choice(np.arange(len(fitness_vals)), len(fitness_vals), p = proportions)
     pairs = [choices[i * 2 : (i + 1) * 2] for i in range((len(choices) + 1) // 2)]
     return pairs
