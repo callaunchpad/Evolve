@@ -6,12 +6,7 @@ fitness/selection/crossover/mutation.py
 - later: nested vector quantization, sepearate channel quantization
 '''
 def proportionate(fitness_vals):
-    proportions = [val / sum(fitness_vals) for val in fitness_vals]
-    indeces = [i for i in range(len(fitness_vals))]
-    parents_to_keep = np.random.choice(indeces, len(indeces) // 2, proportions)
-
-    offspring = []
-    while len(offspring) < len(individuals) // 2:
-        pts = np.random.randint(low=0, high=len(parents_to_keep), size=2)
-        offspring.append((pts[0], pts[1]))
-    return offspring
+    proportions = fitness_vals / sum(fitness_vals)
+    choices = np.random.choice(np.arange(len(fit_vals)), len(fitness_vals), p = proportions)
+    pairs = [choices[i * 2 : (i + 1) * 2] for i in range((len(choices) + 1) // 2)]
+    return pairs
