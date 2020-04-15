@@ -53,6 +53,7 @@ class GA():
             p2 = self.population[p[1]]
             offspring.extend(self.crossover(p1, p2))
         
+        self.population = np.array(offspring)
         self.population = self.mutation(self.population)
 
         best_set = np.argmax(fit_vals)
