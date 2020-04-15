@@ -1,11 +1,9 @@
+import math
+import numpy as np
 '''
 - contain code for reconstruct, blockify, finding nearest codevector
 '''
-
-
-import math
-import numpy as np
-def reconstruct(blocks, image_size):
+def reconstruct_image(blocks, image_size):
     image = np.zeros(image_size)
     avg = np.zeros(image_size)
     bh = blocks.shape[1]
@@ -25,3 +23,8 @@ def reconstruct(blocks, image_size):
         avg[h0:h1,w0:w1,:] += np.ones((bh, bw, bd))
         image[h0:h1,w0:w1,:] += blocks[i]
     return np.divide(image,avg)
+
+def closest_codeblock_index(flattened_cb, bl):
+    bl_r = np.reshape(bl, (-1, 1))
+    norm = np.linalg.norm(flattened_cb - bl_r, axis=0)
+    return np.argmin(norm, axis=0)
