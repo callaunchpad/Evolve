@@ -5,6 +5,7 @@ import numpy as np
 from keras_contrib.losses import DSSIMObjective
 import tensorflow as tf
 from keras import backend as K
+import cv2
 
 '''
 - contain code for reconstruct, blockify, finding nearest codevector
@@ -19,10 +20,10 @@ def reconstruct_image(blocks, image_size):
     bw = blocks.shape[2]
     bd = blocks.shape[3]
     for i in range(blocks.shape[0]):
-        fitH = math.ceil(image_size[0]/bh) #2
-        overH = image_size[0]%bh #2
-        fitW = math.ceil(image_size[1]/bw) #2
-        overW = image_size[1]%bw #2
+        fitH = math.ceil(image_size[0]/bh)
+        overH = image_size[0]%bh
+        fitW = math.ceil(image_size[1]/bw)
+        overW = image_size[1]%bw
 
         h0 = image_size[0]-bh if bh*(i//fitW)+bh>image_size[0] else bh*(i//fitW)
         h1 = h0+bh
@@ -37,3 +38,21 @@ def closest_codeblock_index(flattened_cb, bl):
     bl_r = np.reshape(bl, (-1, 1))
     norm = np.linalg.norm(flattened_cb - bl_r, axis=0)
     return np.argmin(norm, axis=0)
+
+​
+def blockify(image, block_size):
+    img = image[:]
+    img_h, img_w, img_d = image.shape
+    block_h, block_w, block_d = block_size
+    blocks = []
+    r = 0
+    while r != img_h:
+        if r + block_h > img_h: r = img_h - block_h
+        c = 0
+        while c != img_w:
+            if c + block_w > img_w: c = img_w - block_w 
+            block = img[r:r+block_h, c:c+block_w, :]
+            blocks.append(block)
+            c += block_w
+        r += block_h
+    return np.array(blocks)
