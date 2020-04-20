@@ -1,5 +1,5 @@
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '6, 7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '4, 5'
 import math
 import numpy as np
 from keras_contrib.losses import DSSIMObjective
@@ -39,7 +39,6 @@ def closest_codeblock_index(flattened_cb, bl):
     norm = np.linalg.norm(flattened_cb - bl_r, axis=0)
     return np.argmin(norm, axis=0)
 
-​
 def blockify(image, block_size):
     img = image[:]
     img_h, img_w, img_d = image.shape
