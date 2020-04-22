@@ -46,6 +46,10 @@ class GA():
             os.mkdir(self.visualization_dir + "/test{}".format(i))
 
         with open(self.log_dir + '/experiment.log','a+') as log:
+            log.write(datetime.datetime.now().strftime("Traing started on %Y-%m-%d %H:%M:%S\n"))
+            log.write(f"Population size: {self.pop_size}\n")
+            log.write(f"Codeblocks per individual: {self.num_codeblocks}\n")
+            log.write(f"Codeblock shape: {self.block_size}\n")
             log.write("Crossover Policy: " + crossover_policy.__name__ + "\n")
             log.write("Fitness Policy: " + fitness_policy.__name__ + "\n")
             log.write("Mutation Policy: " + mutation_policy.__name__ + "\n")
@@ -85,7 +89,7 @@ class GA():
             print('mean: %f std: %f max: %f' % (mean, std, best))
 
             with open(self.log_dir + '/experiment.log','a+') as log:
-                log.write('mean: %f std: %f max: %f' % (mean, std, best))
+                log.write('Epoch: %f mean: %f std: %f max: %f\n' % (epoch, mean, std, best))
             
             if epoch % save_freq == 0:
                 for i in range(self.train_im.shape[0]):
@@ -111,7 +115,7 @@ if __name__ == '__main__':
             block = np.load(blocks_dir + file)
             blocks.append(block)
 
-    evolve = GA(20, 25, np.array(images[:1]), np.array(blocks[:1]), np.array(images[1:]), np.array(blocks[1:]),
+    evolve = GA(20, 25, np.array(images[1:]), np.array(blocks[1:]), np.array(images[:1]), np.array(blocks[:1]),
         crossover.block_one_point,
         fitness.ssim_reconstruct,
         mutation.gradient,
