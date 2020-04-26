@@ -14,8 +14,8 @@ from src.utils import *
 class HuffmanEncoder:
     # dataset is a sequence of numpy integers
     def __init__(self, dataset):
-        self.input = np.array_str(dataset)[1:-1]
-        self.items = sorted(collections.Counter(self.input).items())
+        # self.input = np.array_str(dataset)[1:-1]
+        self.items = [(str(i), j) for i,j in sorted(collections.Counter(dataset).items())]
         self.codebook = huffman.codebook(self.items)
     # call this to print codebook to a specific path
     def print_codebook(self, path):
@@ -43,9 +43,9 @@ def encode(image):
     #     print(encoder.codebook)
     #     encoded.append(encoder.codebook[closest])
     # result.append(encoded)
-    CODEVECTOR_PATH = "src/download3_jpgcodevectors.npy"
+    CODEVECTOR_PATH = "src/small.pngcodevectors.npy"
     codevector = np.load(CODEVECTOR_PATH)
-    flattened_blocks = blockify(image, (100,100,3))
+    flattened_blocks = blockify(image, (80,80,3))
     result = []
 
     #first line of text file = image size
@@ -80,7 +80,7 @@ def encode(image):
 
 #USAGE: decode(args["image"])
 def decode(ev_path):
-    CODEVECTOR_PATH = "src/sign.jpgcodevectors.npy"
+    CODEVECTOR_PATH = "src/small.pngcodevectors.npy"
     codevector = np.load(CODEVECTOR_PATH)
     print(codevector.shape)
 
