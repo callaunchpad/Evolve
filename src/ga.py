@@ -113,7 +113,7 @@ if __name__ == '__main__':
     for file in sorted(os.listdir(image_dir)):k
         if file.startswith("image"):
             if blocks[0].shape[-1] == 1:
-                image = cv2.imread(image_dir + file, 0)
+                image = np.expand_dims(cv2.imread(image_dir + file, 0), 2)
             else:
                 image = cv2.imread(image_dir + file)
             images.append(image)
