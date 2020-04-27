@@ -17,7 +17,7 @@ ap.add_argument("-H", "--rows", required=True,
     help="num rows")
 ap.add_argument("-W", "--columns", required=True,
     help="num columns")
-ap.add_argument("-D", "--depth", required=True,
+depth_arg = ap.add_argument("-D", "--depth", required=True,
     help="num channels")
 
 args = vars(ap.parse_args())
@@ -25,6 +25,9 @@ args = vars(ap.parse_args())
 block_rows = int(args["rows"])
 block_cols = int(args["columns"])
 block_depth = int(args["depth"])
+
+if block_depth != 1 and block_depth != 3:
+    raise argparse.ArgumentError(depth_arg, "Depth must be 1 or 3")
 
 if __name__ == "__main__":
 
@@ -34,11 +37,13 @@ if __name__ == "__main__":
     if not os.path.exists("data/images"):
         os.makedirs("data/images")
         print("created images directory, please put in images")
-
+    
     for filename in os.listdir("data/images"):
         if filename.endswith(".jpg") or filename.endswith(".png"):
-            image = cv2.imread("data/images/" + filename, 4)
-            if (len(image.shape) == 2):
+            if block_depth == 1:
+                image = cv2.imread("data/images/" + filename, 0)
                 image = np.expand_dims(image, axis = 2)
+            elif block_depth == 3:
+                image = cv2.imread("data/images/" + filename)
             blocks = blockify(image, (block_rows, block_cols, block_depth))
             np.save("data/blocks/blocks_" + filename[:-4], blocks)
