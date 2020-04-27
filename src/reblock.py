@@ -31,19 +31,19 @@ if block_depth != 1 and block_depth != 3:
 
 if __name__ == "__main__":
 
-    if not os.path.exists("data/blocks"):
-        os.makedirs("data/blocks")
+    if not os.path.exists("../data/blocks"):
+        os.makedirs("../data/blocks")
 
-    if not os.path.exists("data/images"):
-        os.makedirs("data/images")
+    if not os.path.exists("../data/images"):
+        os.makedirs("../data/images")
         print("created images directory, please put in images")
     
-    for filename in os.listdir("data/images"):
+    for filename in os.listdir("../data/images"):
         if filename.endswith(".jpg") or filename.endswith(".png"):
             if block_depth == 1:
-                image = cv2.imread("data/images/" + filename, 0)
+                image = cv2.imread("../data/images/" + filename, 0)
                 image = np.expand_dims(image, axis = 2)
             elif block_depth == 3:
-                image = cv2.imread("data/images/" + filename)
+                image = cv2.imread("../data/images/" + filename)
             blocks = blockify(image, (block_rows, block_cols, block_depth))
-            np.save("data/blocks/blocks_" + filename[:-4], blocks)
+            np.save("../data/blocks/blocks_" + filename[:-4], blocks)

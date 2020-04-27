@@ -87,7 +87,7 @@ def encode(image, _huffman = True, _delimeter = False):
     # result.append(encoded)
 
 
-    CODEVECTOR_PATH = "src/blocks_input_codevector.npy"
+    CODEVECTOR_PATH = "data/blocks/blocks_input.npy"
     codevector = np.load(CODEVECTOR_PATH)
     print(codevector.shape[1:])
     flattened_blocks = blockify(image, codevector.shape[1:])
@@ -138,7 +138,8 @@ def encode(image, _huffman = True, _delimeter = False):
 
 #USAGE: decode(args["image"])
 def decode(ev_path, _huffman = True, _delimeter = False):
-    CODEVECTOR_PATH = "src/blocks_input_codevector.npy"
+    #CODEVECTOR_PATH = "src/blocks_input_codevector.npy"
+    CODEVECTOR_PATH = "data/blocks/blocks_input.npy"
     codevector = np.load(CODEVECTOR_PATH)
     print(codevector.shape)
 
