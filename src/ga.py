@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
     for file in sorted(os.listdir(blocks_dir)):
         if file.startswith("blocks"):
-            block = np.load(blocks_dir + file, 4)
+            block = np.load(blocks_dir + file)
             blocks.append(block)
 
     for file in sorted(os.listdir(image_dir)):k
