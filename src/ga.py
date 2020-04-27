@@ -105,15 +105,20 @@ if __name__ == '__main__':
     images = []
     blocks = []
 
-    for file in sorted(os.listdir(image_dir)):
-        if file.startswith("image"):
-            image = cv2.imread(image_dir + file)
-            images.append(image)
-    
     for file in sorted(os.listdir(blocks_dir)):
         if file.startswith("blocks"):
-            block = np.load(blocks_dir + file)
+            block = np.load(blocks_dir + file, 4)
             blocks.append(block)
+
+    for file in sorted(os.listdir(image_dir)):k
+        if file.startswith("image"):
+            if blocks[0].shape[-1] == 1:
+                image = cv2.imread(image_dir + file, 0)
+            else:
+                image = cv2.imread(image_dir + file)
+            images.append(image)
+    
+
 
     evolve = GA(20, 25, np.array(images[1:]), np.array(blocks[1:]), np.array(images[:1]), np.array(blocks[:1]),
         crossover.block_one_point,
