@@ -51,7 +51,7 @@ def run():
     if args["compress"]:
         if args["image"]:
             tic = time.perf_counter()
-            ret = encode(cv2.imread(args["image"]))
+            ret = encode(args["image"], cv2.imread(args["image"]))
             toc = time.perf_counter()
 
             print(f"Encoded in {toc - tic:0.4f} seconds")
@@ -87,7 +87,7 @@ def run():
             toc = time.perf_counter()
 
             print(f"Decoded in {toc - tic:0.4f} seconds")
-            cv2.imwrite("decoded.jpg", ret) #should be .jpg
+            cv2.imwrite("decoded.png", ret) #should be .jpg
 
         elif args["video"]:
             tic = time.perf_counter()

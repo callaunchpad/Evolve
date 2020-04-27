@@ -68,33 +68,15 @@ def image_helper(image_size, bits):
         temp = bin(image_size)[2:]
         return temp
 
-
+CODEVECTOR_PATH = "src/sign.png.npy" #put codevector path here
 
 #ingests some string
-def encode(image, _huffman = True, _delimeter = False):
-    #pass
-    # block yea im writing it out here just for trolls we can move it
-    # CODEVECTOR_PATH = "src/download3_jpgcodevectors.npy"
-    # codevector = np.load(CODEVECTOR_PATH)
-    # flattened_blocks = blockify(image, (100,100,1))
-    # result = []
-    # encoded = []
-    # flat_codevector = np.reshape(codevector, (codevector.shape[0], codevector.shape[1] * codevector.shape[2] * codevector.shape[3])).T
-    # for block in flattened_blocks:
-    #     closest = codevector[(closest_codeblock_index(flat_codevector, block))]
-    #     print(encoder.codebook)
-    #     encoded.append(encoder.codebook[closest])
-    # result.append(encoded)
+def encode(image_name, image, _huffman = True, _delimeter = False):
+    global CODEVECTOR_PATH
 
-
-    CODEVECTOR_PATH = "data/blocks/blocks_input.npy"
     codevector = np.load(CODEVECTOR_PATH)
     print(codevector.shape[1:])
     flattened_blocks = blockify(image, codevector.shape[1:])
-    # result = []
-    #
-    # #first line of text file = image size
-    # result.append(np.shape(image))
 
     best = np.array([])
     flat_codevector = np.reshape(codevector, (codevector.shape[0], codevector.shape[1] * codevector.shape[2] * codevector.shape[3])).T
@@ -106,12 +88,15 @@ def encode(image, _huffman = True, _delimeter = False):
     print(best)
     if _huffman:
         encoder = HuffmanEncoder(best)
-        encoder.write_file_ouptut("encoded.ev", best, image.shape, _huffman, _delimeter, codevector)
+        #encoder.write_file_ouptut("encoded.ev", best, image.shape, _huffman, _delimeter, codevector)
+        encoder.write_file_ouptut(image_name+".ev", best, image.shape, _huffman, _delimeter, codevector)
     else:
-        f = open(path,"w+")
+        f = open(image_name+".ev","w+")
 
         # writing image_name
-        f.write(image.shape)
+        f.write(image_helper(image.shape[0], 16))
+        f.write(image_helper(image.shape[1], 16))
+        f.write(image_helper(image.shape[2], 2))
         f.write("\n")
 
         for index_value in best:
@@ -119,27 +104,11 @@ def encode(image, _huffman = True, _delimeter = False):
             f.write(" ")
 
         f.close()
-    # encoded = np.array([])
-    #
-    # # pop whitespace key
-    # encoder.codebook.pop(" ", None)
-    # print(encoder.codebook)
-    # for i in best:
-    #     encoded = np.append(encoded, encoder.codebook[str(i)])
-    #
-    # #second line of text file = codevectors
-    # result.append(encoded)
-
-    # index 0 = image
-    # index 1 = vals
-    # index 2 = tree
-    # result.append(encoder.codebook)
-    # np.save("encoded.ev", result);
 
 #USAGE: decode(args["image"])
 def decode(ev_path, _huffman = True, _delimeter = False):
-    #CODEVECTOR_PATH = "src/blocks_input_codevector.npy"
-    CODEVECTOR_PATH = "data/blocks/blocks_input.npy"
+    global CODEVECTOR_PATH
+
     codevector = np.load(CODEVECTOR_PATH)
     print(codevector.shape)
 
@@ -179,25 +148,11 @@ def decode(ev_path, _huffman = True, _delimeter = False):
     else:
         last_line = lines[-1]
         encoded_values = last_line.split(" ")
-        blocks = [int(i) for i in encoded_values]
+        encoded_values.remove("")
+        print(encoded_values)
+        blocks = [codevector[int(i)] for i in encoded_values]
 
-    # input = np.load(ev_path, allow_pickle = True)
-    # codebook = input[2] #tree
-    # encodes = input[1] #vals
-    # print(type(encodes))
-    # image_size = input[0] #img
-    #
-    # blocks = []
-    # print(encodes)
-    # print(codebook)
-    # print(codebook.values())
-    #
-    # for encode in encodes:
-    #     for img, code in codebook.items():
-    #         if code == encode:
-    #             print(img)
-    #             blocks.append(codevector[int(img)])
     blocks = np.asarray(blocks)
-    print(blocks.shape)
+
     decoded = reconstruct_image(blocks, image_size)
     return decoded
