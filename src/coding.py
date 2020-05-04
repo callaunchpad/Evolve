@@ -24,7 +24,6 @@ class HuffmanEncoder:
 
         self.codebook.pop(" ", None)
         self.codebook.pop("/n", None)
-        print(self.codebook)
     # call this to print codebook to a specific path
     def print_codebook(self, path):
         f = open(path,"w+")
@@ -61,17 +60,14 @@ class HuffmanEncoder:
 
 #ret = encode(args["image"])
 def image_helper(image_size, bits):
-    print(image_size)
     if bits > 8:
         temp = '{0:016b}'.format(image_size)
-        print(temp)
         return temp
     else:
         temp = '{0:02b}'.format(image_size)
-        print(temp)
         return temp
 
-CODEVECTOR_PATH = "src/blocks_download3.npy" #put codevector path here
+CODEVECTOR_PATH = "src/test.npy" #put codevector path here
 
 #ingests some string
 def encode(image_name, image, _huffman = True, _delimeter = False):
@@ -111,9 +107,9 @@ def decode(ev_path, _huffman = True, _delimeter = False):
 
     codevector = np.load(CODEVECTOR_PATH)
 
+
     f = open(ev_path, "r")
     lines = f.readlines()
-    print(codevector.shape)
 
     image_size_line = lines[0]
     x = int(image_size_line[0:16], 2)
@@ -126,7 +122,6 @@ def decode(ev_path, _huffman = True, _delimeter = False):
     if _huffman:
         for i in range(len(lines[1:-1])):
             codebook[i] = lines[i + 1][:-1]
-        print(codebook)
         last_line = lines[-1]
 
         if _delimeter:
