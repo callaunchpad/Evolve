@@ -30,7 +30,10 @@ class GA():
         for i in range(pop_size):
             cb_set = []
             for j in range(num_codeblocks):
-                cb_set.append(np.ones(self.block_size) * np.random.randint(0, 255))
+                if self.block_size[-1] == 1:
+                    cb_set.append(np.ones(self.block_size) * np.random.randint(0, 255))
+                else:
+                    cb_set.append(np.stack((np.ones(self.block_size[0:2]) * np.random.randint(0, 255), np.ones(self.block_size[0:2]) * np.random.randint(0, 255), np.ones(self.block_size[0:2]) * np.random.randint(0, 255)), axis = -1))
             self.population.append(np.array(cb_set))
         self.population = np.array(self.population)
 
@@ -68,6 +71,8 @@ class GA():
             val = self.fitness(self.population[i], self.train_im, self.train_blocks, batch_size = 1)
             fit_vals.append(val)
         
+        best_ind = np.copy(self.population[np.argmax(fit_vals)])
+
         pairs = self.selection(fit_vals)
 
         offspring = []
@@ -80,7 +85,7 @@ class GA():
         self.population = self.mutation(self.population)
 
         best_set = np.argmax(fit_vals)
-        return np.mean(fit_vals), np.std(fit_vals), fit_vals[best_set], self.population[best_set]
+        return np.mean(fit_vals), np.std(fit_vals), fit_vals[best_set], best_ind
     
     def run(self, num_epochs, save_freq=5):
         for epoch in range(num_epochs):
@@ -93,9 +98,11 @@ class GA():
             
             if epoch % save_freq == 0:
                 for i in range(self.train_im.shape[0]):
-                    cv2.imwrite(self.visualization_dir + "/train{}".format(i) + "/img{}.png".format(epoch), evolve.test_image_reconstruct(best_ind, self.train_im[i], self.train_blocks[i]))
+                    im = evolve.test_image_reconstruct(best_ind, self.train_im[i], self.train_blocks[i])
+                    cv2.imwrite(self.visualization_dir + "/train{}".format(i) + "/img{}.png".format(epoch), im)
                 for i in range(self.test_im.shape[0]):
-                    cv2.imwrite(self.visualization_dir + "/test{}".format(i) + "/img{}.png".format(epoch), evolve.test_image_reconstruct(best_ind, self.test_im[i], self.test_blocks[i]))
+                    im = evolve.test_image_reconstruct(best_ind, self.test_im[i], self.test_blocks[i])
+                    cv2.imwrite(self.visualization_dir + "/test{}".format(i) + "/img{}.png".format(epoch), im)
                 np.save(self.codevectors_dir + "/population_iters_{}.npy".format(epoch), self.population)
                 np.save(self.codevectors_dir + "/best_iters_{}.npy".format(epoch), best_ind)
 
@@ -108,22 +115,22 @@ if __name__ == '__main__':
     for file in sorted(os.listdir(blocks_dir)):
         if file.startswith("blocks"):
             block = np.load(blocks_dir + file)
+            print(block.shape)
             blocks.append(block)
 
-    for file in sorted(os.listdir(image_dir)):k
+    for file in sorted(os.listdir(image_dir)):
         if file.startswith("image"):
             if blocks[0].shape[-1] == 1:
                 image = np.expand_dims(cv2.imread(image_dir + file, 0), 2)
             else:
                 image = cv2.imread(image_dir + file)
             images.append(image)
-    
 
 
-    evolve = GA(20, 25, np.array(images[1:]), np.array(blocks[1:]), np.array(images[:1]), np.array(blocks[:1]),
-        crossover.block_one_point,
+    evolve = GA(20, 200, np.array(images[1:]), np.array(blocks[1:]), np.array(images[:1]), np.array(blocks[:1]),
+        crossover.set_one_point,
         fitness.ssim_reconstruct,
         mutation.gradient,
         selection.proportionate)
     
-    evolve.run(2, save_freq=1)
+    evolve.run(10, save_freq=1)
