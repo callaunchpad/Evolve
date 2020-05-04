@@ -61,21 +61,23 @@ class HuffmanEncoder:
 
 #ret = encode(args["image"])
 def image_helper(image_size, bits):
+    print(image_size)
     if bits > 8:
-        temp = "00000000" + bin(image_size)[2:]
+        temp = '{0:016b}'.format(image_size)
+        print(temp)
         return temp
     else:
-        temp = bin(image_size)[2:]
+        temp = '{0:02b}'.format(image_size)
+        print(temp)
         return temp
 
-CODEVECTOR_PATH = "src/sign.png.npy" #put codevector path here
+CODEVECTOR_PATH = "src/blocks_download3.npy" #put codevector path here
 
 #ingests some string
 def encode(image_name, image, _huffman = True, _delimeter = False):
     global CODEVECTOR_PATH
 
     codevector = np.load(CODEVECTOR_PATH)
-    print(codevector.shape[1:])
     flattened_blocks = blockify(image, codevector.shape[1:])
 
     best = np.array([])
@@ -84,8 +86,6 @@ def encode(image_name, image, _huffman = True, _delimeter = False):
         best = np.append(best, [closest_codeblock_index(flat_codevector, block)])
 
     best = best.astype(int)
-    print(best.shape)
-    print(best)
     if _huffman:
         encoder = HuffmanEncoder(best)
         #encoder.write_file_ouptut("encoded.ev", best, image.shape, _huffman, _delimeter, codevector)
@@ -110,10 +110,10 @@ def decode(ev_path, _huffman = True, _delimeter = False):
     global CODEVECTOR_PATH
 
     codevector = np.load(CODEVECTOR_PATH)
-    print(codevector.shape)
 
     f = open(ev_path, "r")
     lines = f.readlines()
+    print(codevector.shape)
 
     image_size_line = lines[0]
     x = int(image_size_line[0:16], 2)
@@ -122,7 +122,6 @@ def decode(ev_path, _huffman = True, _delimeter = False):
     image_size = (x, y, z)
     codebook = {}
     blocks = []
-    print(image_size)
 
     if _huffman:
         for i in range(len(lines[1:-1])):
@@ -145,11 +144,11 @@ def decode(ev_path, _huffman = True, _delimeter = False):
                         #do addint stuff here
                         blocks.append(codevector[int(img)])
                         candidate = ""
+                        break
     else:
         last_line = lines[-1]
         encoded_values = last_line.split(" ")
         encoded_values.remove("")
-        print(encoded_values)
         blocks = [codevector[int(i)] for i in encoded_values]
 
     blocks = np.asarray(blocks)
