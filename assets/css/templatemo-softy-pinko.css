@@ -128,6 +128,15 @@ body {
   padding-bottom: 80px;
 }
 
+.section .container .i {
+  position: relative;
+  text-align: center;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+  margin-top: 40px;
+}
+
 .section.colored {
   background: #f2f2fe;
 }
@@ -146,7 +155,7 @@ body {
 
 .left-heading .section-title {
   font-weight: 500;
-  font-size: 24px;
+  font-size: 36px;
   line-height: 42px;
   color: #1e1e1e;
   letter-spacing: 0.25px;
@@ -160,11 +169,11 @@ body {
 
 .center-heading .section-title {
   font-weight: 500;
-  font-size: 28px;
+  font-size: 42px;
   color: #1e1e1e;
   letter-spacing: 1.75px;
   line-height: 38px;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 .center-heading.colored .section-title {
@@ -175,10 +184,10 @@ body {
   text-align: center;
   font-weight: 400;
   font-size: 16px;
-  color: #777;
+  color: #1e1e1e;
   line-height: 28px;
   letter-spacing: 1px;
-  margin-bottom: 50px;
+  margin-bottom: 0px;
 }
 
 .center-text.colored {
@@ -187,8 +196,8 @@ body {
 
 .center-text p {
   font-size: 15px;
-  color: #777;
-  margin-bottom: 30px;
+  color: #1e1e1e;
+  margin-bottom: 0px;
 }
 
 .left-text {
@@ -806,7 +815,7 @@ features
 
 .features-small-item p {
   font-weight: 400;
-  font-size: 13px;
+  font-size: 16px;
   color: #777;
   letter-spacing: 0.5px;
   line-height: 25px;
@@ -844,7 +853,7 @@ parallax & home seperator
   min-height: 215px;
   overflow: hidden;
   position: relative;
-  padding-top: 90px;
+  padding-top: 70px;
   padding-bottom: 90px;
 }
 
@@ -904,7 +913,7 @@ parallax & home seperator
   letter-spacing: 0.25px;
   line-height: 26px;
   font-weight: 400;
-  font-size: 15px;
+  font-size: 24px;
 }
 
 .mini .mini-content .info p span {
@@ -917,7 +926,7 @@ parallax & home seperator
   padding: 20px;
   border-radius: 20px;
   box-shadow: 0 2px 48px 0 rgba(0, 0, 0, 0.08);
-  margin-bottom: 30px;
+  margin-bottom: 10px;
   position: relative;
   -webkit-transition: all 0.3s ease 0s;
   -moz-transition: all 0.3s ease 0s;
@@ -964,9 +973,10 @@ parallax & home seperator
   font-weight: 400;
   font-size: 17px;
   color: #1e1e1e;
+  text-align: top;
   letter-spacing: 0.25px;
   margin-bottom: 5px;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .counter {
@@ -1149,7 +1159,7 @@ team
 
 .team-item .team-content {
   text-align: left;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .team-item .team-content .team-info {
