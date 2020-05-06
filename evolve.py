@@ -21,6 +21,7 @@ import cv2
 import os
 from src.coding import *
 import time
+import tensorflow as tf
 
 ap = argparse.ArgumentParser()
 ap.add_argument('-c', "--compress", action='store_true')
@@ -33,6 +34,8 @@ ap.add_argument("-i", "--image", required=False,default=None,
 args = vars(ap.parse_args())
 
 CODEVECTOR_PATH = "/path_to_codevector"
+
+video_image_size = 0;
 
 def run():
     if not args["compress"] and not args["decompress"]:
@@ -51,32 +54,63 @@ def run():
     if args["compress"]:
         if args["image"]:
             tic = time.perf_counter()
-            ret = encode(args["image"], cv2.imread(args["image"]))
+            grey = cv2.cvtColor(cv2.imread(args["image"]), cv2.COLOR_BGR2GRAY)
+            img_expanded = grey[:, :, np.newaxis]
+            ret = encode(args["image"], img_expanded)
             toc = time.perf_counter()
 
             print(f"Encoded in {toc - tic:0.4f} seconds")
             #return ret #should be npy or ev?
 
+            image = open(args["image"], "rb")
+            f = image.read()
+            b = bytearray(f)
+
+            encoded_ev = open(args["image"] + ".ev", "rb")
+            f2 = encoded_ev.read()
+            b2 = bytearray(f2)
+
+            print("Compression Ratio:" + str((len(b) * 8)/ len(b2)))
+
+
+
+
         elif args["video"]:
             tic = time.perf_counter()
             encoded_movie = [] #array of npys
             video_path = args["video"]
+            i = 0
             v = cv2.VideoCapture(video_path)
+            totsum = 0
+
+            if not os.path.exists(args["video"].replace(".", "")):
+                os.makedirs(args["video"].replace(".", ""))
+
             while True:
                 ret, frame = v.read()
                 if ret == True:
                     #b = cv2.resize(frame,(480, 360),fx=0,fy=0, interpolation = cv2.INTER_CUBIC)
-                    encoded_movie.append(encode(frame))
+                    grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                    img_expanded = grey[:, :, np.newaxis]
+                    encode(args["video"].replace(".", "") + "/frame" + str(i).zfill(8), img_expanded)
+                    temp = open(args["video"].replace(".", "") + "/frame" + str(i).zfill(8) + ".ev", "rb")
+                    f2 = temp.read()
+                    b2 = bytearray(f2)
+                    totsum += len(b2)
+                    i+=1
                 else:
                     break
             toc = time.perf_counter()
-
             v.release()
             cv2.destroyAllWindows()
 
             print(f"Encoded in {toc - tic:0.4f} seconds")
 
-            np.save("encoded_movie.ev", encoded_movie)
+            image = open(args["video"], "rb")
+            f = image.read()
+            b = bytearray(f)
+            print("Compression Ratio:" + str((len(b)* 8) / totsum))
+
 
 
     elif args["decompress"]:
@@ -87,17 +121,26 @@ def run():
             toc = time.perf_counter()
 
             print(f"Decoded in {toc - tic:0.4f} seconds")
-            cv2.imwrite("decoded.png", ret) #should be .jpg
+            cv2.imwrite("decoded" + args["image"] + ".png", ret) #should be .jpg
 
         elif args["video"]:
             tic = time.perf_counter()
-            fourcc = VideoWriter_fourcc(*'MP4V')
-            out = VideoWriter("decoded_movie.mp4", fourcc, 30.0, (640,480)) #makes mp4
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            #(640, 360) is hardcoded, needs to be the size of the frame of the video
+            out = cv2.VideoWriter("decoded_movie.mp4", fourcc, 30.0, (640,360), 0) #makes mp4
             #out = cv2.VideoWriter('outpy.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (frame_width,frame_height))
+            sorted = os.listdir(args["video"])
+            sorted.sort()
 
-            video_input = np.load("encoded_movie.ev")
-            for i in range(len(video_input)):
-                out.write(decode(video_input[i]))
+            for ev_file in sorted:
+                if ev_file.endswith(".ev"):
+                    print(args["video"] + "/" + ev_file)
+                    #needs proper format of uint8 for some reason
+                    imagecopy = np.uint8(decode(args["video"] + "/" + ev_file))
+                    out.write(imagecopy)
+            #video_input = np.load("encoded_movie.ev")
+            # for i in range(len(video_input)):
+            #     out.write(decode(video_input[i]))
 
             toc = time.perf_counter()
             out.release()

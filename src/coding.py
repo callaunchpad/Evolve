@@ -67,7 +67,7 @@ def image_helper(image_size, bits):
         temp = '{0:02b}'.format(image_size)
         return temp
 
-CODEVECTOR_PATH = "src/test.npy" #put codevector path here
+CODEVECTOR_PATH = "src/bestest.npy" #put codevector path here
 
 #ingests some string
 def encode(image_name, image, _huffman = True, _delimeter = False):
@@ -102,7 +102,7 @@ def encode(image_name, image, _huffman = True, _delimeter = False):
         f.close()
 
 #USAGE: decode(args["image"])
-def decode(ev_path, _huffman = True, _delimeter = False):
+def decode(ev_path, _huffman = True , _delimeter = False):
     global CODEVECTOR_PATH
 
     codevector = np.load(CODEVECTOR_PATH)
