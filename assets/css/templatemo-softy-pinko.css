@@ -661,19 +661,19 @@ welcome
 
 .welcome-area .header-text h1 {
   font-weight: 500;
-  font-size: 36px;
+  font-size: 128px;
   line-height: 54px;
   letter-spacing: 1.4px;
   margin-bottom: 30px;
-  color: #fff;
+  color: #000000;
 }
 
 .welcome-area .header-text p {
   font-weight: 400;
-  font-size: 24px;
-  color: #fff;
-  line-height: 28px;
-  letter-spacing: 0.25px;
+  font-size: 32px;
+  color: #000000;
+  line-height: 40px;
+  letter-spacing: 0.5px;
   margin-bottom: 40px;
   position: relative;
 }
@@ -1442,7 +1442,7 @@ footer
 --------------------------------------------- 
 */
 footer {
-  background-image: linear-gradient(127deg, #a759d1 0%, #8261ee 91%);
+  background-image: linear-gradient(127deg, #707070 0%, #4f4f4f 91%);
   padding-top: 30px;
 }
 
