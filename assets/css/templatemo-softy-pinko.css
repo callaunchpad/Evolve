@@ -670,7 +670,7 @@ welcome
 
 .welcome-area .header-text p {
   font-weight: 400;
-  font-size: 15px;
+  font-size: 24px;
   color: #fff;
   line-height: 28px;
   letter-spacing: 0.25px;
@@ -705,7 +705,7 @@ welcome
     transform: perspective(1px) translateY(-60%) !important;
   }
    .welcome-area .header-text h1 {
-    font-size: 22px;
+    font-size: 48px;
     line-height: 30px;
     margin-bottom: 15px;
   }
@@ -716,7 +716,7 @@ welcome
 
 @media (max-width: 765px) {
   .welcome-area {
-    margin-bottom: 100px;
+    margin-bottom: 50px;
   }
   .welcome-area .header-text {
     top: 50% !important;
@@ -728,9 +728,9 @@ welcome
   }
   .welcome-area .header-text h1 {
     font-weight: 600;
-    font-size: 24px !important;
-    line-height: 30px !important;
-    margin-bottom: 30px !important;
+    font-size: 48px !important;
+    line-height: 48px !important;
+    margin-bottom: 48px !important;
   }
   .welcome-area .header-text h1 span {
     color: #fff;
@@ -738,7 +738,7 @@ welcome
   .welcome-area .header-text p {
     text-align: center;
     color: #fff;
-    font-size: 14px;
+    font-size: 24px;
     line-height: 22px;
     margin-bottom: 40px;
   }
@@ -892,7 +892,7 @@ parallax & home seperator
 .mini .mini-content .info h1 {
   color: #fff;
   font-weight: 500;
-  font-size: 28px;
+  font-size: 48px;
   letter-spacing: 0.25px;
   margin-bottom: 30px;
 }
